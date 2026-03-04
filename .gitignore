@@ -19,9 +19,10 @@ poetry.toml
 # Environment
 .env
 
-# IDE
+# IDE / Tools
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 *~
