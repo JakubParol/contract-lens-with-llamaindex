@@ -1,0 +1,33 @@
+[project]
+name = "contract-lens"
+version = "0.1.0"
+description = "RAG pipeline and conversational agent for analyzing scanned agreements using LlamaIndex, LangGraph, Pinecone, and LangFuse"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+
+[tool.poetry]
+packages = [{include = "contract_lens", from = "src"}]
+
+[tool.poetry.dependencies]
+llama-index = "^0.14.15"
+llama-index-vector-stores-pinecone = "^0.7.1"
+llama-index-embeddings-azure-openai = "^0.4.1"
+llama-index-llms-azure-openai = "^0.4.2"
+llama-index-readers-file = "^0.5.6"
+langgraph = "^1.0.10"
+langchain-openai = "^1.1.10"
+langfuse = "^3.14.5"
+litellm = "^1.82.0"
+pydantic-settings = "^2.13.1"
+python-dotenv = "^1.2.2"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "fpdf2 (>=2.8.7,<3.0.0)",
+    "pillow (>=12.1.1,<13.0.0)"
+]
