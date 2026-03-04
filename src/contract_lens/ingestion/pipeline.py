@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from llama_index.core import SimpleDirectoryReader, StorageContext, VectorStoreIndex
