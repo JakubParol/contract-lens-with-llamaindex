@@ -30,7 +30,7 @@ Scanned PDFs (EN/PL)
          ▼
     User / Chat CLI
 
-Models: Azure AI Foundry (via LiteLLM)
+Models: Azure AI Foundry (direct)
 ```
 
 ## Tech Stack
@@ -40,8 +40,7 @@ Models: Azure AI Foundry (via LiteLLM)
 | RAG Framework | LlamaIndex |
 | Agent Framework | LangGraph |
 | Vector Store | Pinecone |
-| LLM / Embeddings | Azure AI Foundry (OpenAI models) |
-| LLM Proxy | LiteLLM |
+| LLM / Embeddings | Azure AI Foundry (OpenAI models, direct) |
 | Observability | LangFuse |
 | Language | Python 3.12, Poetry |
 

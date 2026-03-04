@@ -33,7 +33,7 @@ This repo does NOT cover:
 - **Poetry** for dependency management — no pip, no requirements.txt
 - **LlamaIndex** for all document processing and RAG — do not use LangChain's document loaders or retrievers
 - **LangGraph** only for the agent orchestration layer — keep it minimal (ReAct pattern)
-- **Azure AI Foundry** models — all LLM and embedding calls go through Azure OpenAI endpoints (direct or via LiteLLM)
+- **Azure AI Foundry** models — all LLM and embedding calls go through Azure OpenAI endpoints directly (no proxy layer)
 - **LangFuse** for observability — use `LlamaIndexInstrumentor` (not the deprecated callback handler) and `langfuse.langchain.CallbackHandler` for LangGraph
 - No hardcoded API keys — everything via `.env` and `pydantic-settings`
 - Agreements in both English and Polish — metadata must track language

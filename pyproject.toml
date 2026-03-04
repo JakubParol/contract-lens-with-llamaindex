@@ -18,7 +18,6 @@ llama-index-readers-file = "^0.5.6"
 langgraph = "^1.0.10"
 langchain-openai = "^1.1.10"
 langfuse = "^3.14.5"
-litellm = "^1.82.0"
 pydantic-settings = "^2.13.1"
 python-dotenv = "^1.2.2"
 
