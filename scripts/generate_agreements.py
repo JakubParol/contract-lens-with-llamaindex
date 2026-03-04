@@ -13,6 +13,7 @@ from pathlib import Path
 from fpdf import FPDF
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "data" / "agreements"
+FONT_DIR = Path("/usr/share/fonts/truetype/dejavu")
 
 
 class AgreementPDF(FPDF):
@@ -23,9 +24,14 @@ class AgreementPDF(FPDF):
         self.doc_title = title
         self.lang = lang
         self.set_auto_page_break(auto=True, margin=25)
+        # Register DejaVu Sans for Unicode (Polish characters) support
+        self.add_font("DejaVu", "", str(FONT_DIR / "DejaVuSans.ttf"))
+        self.add_font("DejaVu", "B", str(FONT_DIR / "DejaVuSans-Bold.ttf"))
+        # Map italic to regular (oblique not available on all systems)
+        self.add_font("DejaVu", "I", str(FONT_DIR / "DejaVuSans.ttf"))
 
     def header(self):
-        self.set_font("Helvetica", "B", 10)
+        self.set_font("DejaVu", "B", 10)
         self.cell(0, 6, self.doc_title, align="C")
         self.ln(8)
         self.set_draw_color(0, 0, 0)
@@ -34,26 +40,26 @@ class AgreementPDF(FPDF):
 
     def footer(self):
         self.set_y(-20)
-        self.set_font("Helvetica", "I", 8)
+        self.set_font("DejaVu", "I", 8)
         page_label = "Strona" if self.lang == "pl" else "Page"
         self.cell(0, 10, f"{page_label} {self.page_no()}/{{nb}}", align="C")
 
     def add_heading(self, text: str, level: int = 1):
         sizes = {1: 16, 2: 13, 3: 11}
-        self.set_font("Helvetica", "B", sizes.get(level, 11))
+        self.set_font("DejaVu", "B", sizes.get(level, 11))
         self.ln(4)
         self.multi_cell(0, 7, text)
         self.ln(2)
 
     def add_paragraph(self, text: str):
-        self.set_font("Helvetica", "", 10)
+        self.set_font("DejaVu", "", 10)
         self.multi_cell(0, 5, text)
         self.ln(3)
 
     def add_clause(self, number: str, text: str):
-        self.set_font("Helvetica", "B", 10)
+        self.set_font("DejaVu", "B", 10)
         self.cell(12, 5, number)
-        self.set_font("Helvetica", "", 10)
+        self.set_font("DejaVu", "", 10)
         self.multi_cell(0, 5, text)
         self.ln(2)
 
@@ -61,13 +67,13 @@ class AgreementPDF(FPDF):
         if col_widths is None:
             col_widths = [190 // len(headers)] * len(headers)
         # Header row
-        self.set_font("Helvetica", "B", 9)
+        self.set_font("DejaVu", "B", 9)
         self.set_fill_color(220, 220, 220)
         for i, h in enumerate(headers):
             self.cell(col_widths[i], 7, h, border=1, fill=True, align="C")
         self.ln()
         # Data rows
-        self.set_font("Helvetica", "", 9)
+        self.set_font("DejaVu", "", 9)
         for row in rows:
             for i, cell in enumerate(row):
                 self.cell(col_widths[i], 6, cell, border=1)
@@ -76,12 +82,12 @@ class AgreementPDF(FPDF):
 
     def add_signature_block(self):
         self.ln(15)
-        self.set_font("Helvetica", "", 10)
+        self.set_font("DejaVu", "", 10)
         labels = ("Zleceniodawca / Client", "Wykonawca / Provider") if self.lang == "pl" else ("Client", "Provider")
         self.cell(95, 5, "________________________", align="C")
         self.cell(95, 5, "________________________", align="C")
         self.ln(5)
-        self.set_font("Helvetica", "I", 9)
+        self.set_font("DejaVu", "I", 9)
         self.cell(95, 5, labels[0], align="C")
         self.cell(95, 5, labels[1], align="C")
         self.ln(5)
