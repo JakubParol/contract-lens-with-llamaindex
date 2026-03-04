@@ -10,6 +10,7 @@ All project documentation for Contract Lens with LlamaIndex.
 | [tech-stack.md](tech-stack.md) | Technology choices, versions, and rationale |
 | [synthetic-data.md](synthetic-data.md) | Synthetic agreement generation strategy |
 | [azure-vector-options.md](azure-vector-options.md) | Azure-native vector DB alternatives to Pinecone |
+| [smart-chunking.md](smart-chunking.md) | Structure-aware chunking and metadata-first retrieval |
 
 ## Notebooks
 
@@ -18,6 +19,7 @@ All project documentation for Contract Lens with LlamaIndex.
 | [01_generate_data.ipynb](../notebooks/01_generate_data.ipynb) | Generate synthetic PDFs and simulate scans |
 | [02_ingestion.ipynb](../notebooks/02_ingestion.ipynb) | Step-by-step LlamaIndex ingestion to Pinecone |
 | [03_agent_demo.ipynb](../notebooks/03_agent_demo.ipynb) | LangGraph agent with example contract queries |
+| [04_smart_chunking_demo.ipynb](../notebooks/04_smart_chunking_demo.ipynb) | Structure-aware chunking and metadata-first retrieval |
 
 ## Scripts
 

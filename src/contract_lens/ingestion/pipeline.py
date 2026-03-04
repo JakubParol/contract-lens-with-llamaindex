@@ -6,13 +6,13 @@ import re
 from pathlib import Path
 
 from llama_index.core import SimpleDirectoryReader, StorageContext, VectorStoreIndex
-from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.pinecone import PineconeVectorStore
 from pinecone import Pinecone
 
 from contract_lens.config import Settings
+from contract_lens.ingestion.node_parser import ContractNodeParser
 
 # Filename pattern: {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
 _FILENAME_RE = re.compile(
@@ -97,9 +97,9 @@ def run_ingestion(
         meta = parse_filename_metadata(filename)
         doc.metadata.update(meta)
 
-    # Chunk with settings tuned for contracts (larger chunks preserve clause context)
-    splitter = SentenceSplitter(chunk_size=1024, chunk_overlap=128)
-    nodes = splitter.get_nodes_from_documents(documents)
+    # Structure-aware chunking: splits at section boundaries and enriches metadata
+    parser = ContractNodeParser(chunk_size=1024, chunk_overlap=128)
+    nodes = parser.get_nodes_from_documents(documents)
 
     # Build components
     embed_model = build_embedding_model(settings)

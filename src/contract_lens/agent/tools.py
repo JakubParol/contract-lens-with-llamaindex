@@ -23,6 +23,9 @@ def search_contracts(
     language: str = "",
     contract_id: str = "",
     source_type: str = "",
+    section_type: str = "",
+    has_table: str = "",
+    clause_number: str = "",
 ) -> str:
     """Search the contract knowledge base for information about agreements.
 
@@ -38,13 +41,28 @@ def search_contracts(
         language: Optional filter - "en" for English, "pl" for Polish. Leave empty for all.
         contract_id: Optional filter - contract ID like "ITSVC-001", "SLA-001". Leave empty for all.
         source_type: Optional filter - "base" for original contracts, "amendment" for amendments only. Leave empty for all.
+        section_type: Optional filter by section type. Values: "scope", "payment", "termination",
+            "confidentiality", "liability", "sla", "penalties", "annex", "general". Leave empty for all.
+        has_table: Optional filter - "true" to find only chunks with tables, "false" for chunks without. Leave empty for all.
+        clause_number: Optional filter - specific clause like "3.1", "4.2". Leave empty for all.
     """
     if _settings is None:
         return "Error: tools not initialized. Call init_tools() first."
+
+    # Convert has_table string to bool or None
+    has_table_bool: bool | None = None
+    if has_table.lower() == "true":
+        has_table_bool = True
+    elif has_table.lower() == "false":
+        has_table_bool = False
+
     return query_contracts(
         _settings,
         question=query,
         language=language or None,
         contract_id=contract_id or None,
         source_type=source_type or None,
+        section_type=section_type or None,
+        has_table=has_table_bool,
+        clause_number=clause_number or None,
     )

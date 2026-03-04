@@ -11,7 +11,7 @@ Scanned PDFs (EN/PL)
 ┌─────────────────────┐
 │  LlamaIndex          │
 │  Ingestion Pipeline  │
-│  (OCR → Chunk →     │
+│  (OCR → Smart Chunk →│
 │   Embed → Upsert)   │
 └────────┬────────────┘
          │
@@ -117,6 +117,19 @@ poetry run python scripts/chat.py
 | 1 | [01_generate_data.ipynb](notebooks/01_generate_data.ipynb) | Generate synthetic agreement PDFs and simulate scans |
 | 2 | [02_ingestion.ipynb](notebooks/02_ingestion.ipynb) | Step-by-step LlamaIndex ingestion pipeline to Pinecone |
 | 3 | [03_agent_demo.ipynb](notebooks/03_agent_demo.ipynb) | Interactive LangGraph agent with example contract queries |
+| 4 | [04_smart_chunking_demo.ipynb](notebooks/04_smart_chunking_demo.ipynb) | Structure-aware chunking and metadata-first retrieval |
+
+## Smart Chunking
+
+The ingestion pipeline uses a custom `ContractNodeParser` that detects section boundaries (numbered sections, annexes, amendments, Polish legal markers like §, Rozdział, Artykuł) and enriches each chunk with structural metadata:
+
+- **`section_type`**: controlled vocabulary — `scope`, `payment`, `termination`, `confidentiality`, `liability`, `sla`, `penalties`, `annex`, `general`
+- **`has_table`**: whether the chunk contains a table (pricing schedule, SLA metrics, etc.)
+- **`clause_number`**: first clause number in the chunk (e.g. "3.1")
+
+These metadata fields enable **metadata-first retrieval** — filtering by section type or table presence before semantic search, improving precision for targeted queries.
+
+See [docs/smart-chunking.md](docs/smart-chunking.md) for details.
 
 ## Synthetic Agreements
 
