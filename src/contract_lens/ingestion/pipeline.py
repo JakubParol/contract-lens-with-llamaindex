@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from llama_index.core import SimpleDirectoryReader, StorageContext, VectorStoreIndex
@@ -13,21 +14,41 @@ from pinecone import Pinecone
 
 from contract_lens.config import Settings
 
+# Filename pattern: {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
+_FILENAME_RE = re.compile(
+    r"^\d+_(?P<contract_id>[A-Z]+-\d+)_(?P<source_type>base|amendment)_(?P<lang>en|pl)_v(?P<version>\d+)_(?P<effective_date>\d{4}-\d{2}-\d{2})\.pdf$",
+    re.IGNORECASE,
+)
 
-def _detect_language(filename: str) -> str:
-    """Detect language from filename convention: *_pl.pdf or *_en.pdf."""
+
+def parse_filename_metadata(filename: str) -> dict[str, str]:
+    """Extract amendment-aware metadata from filename convention.
+
+    Expected format: {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
+    Example: 02_ITSVC-001_amendment_en_v2_2025-07-01.pdf
+
+    Returns dict with: contract_id, source_type, language, version, effective_date.
+    Falls back to basic detection if filename doesn't match the convention.
+    """
+    match = _FILENAME_RE.match(filename)
+    if match:
+        return {
+            "contract_id": match.group("contract_id").upper(),
+            "source_type": match.group("source_type").lower(),
+            "language": match.group("lang").lower(),
+            "version": match.group("version"),
+            "effective_date": match.group("effective_date"),
+        }
+
+    # Fallback for files not matching the convention
     lower = filename.lower()
-    if "_pl" in lower:
-        return "pl"
-    return "en"
-
-
-def _detect_document_type(filename: str) -> str:
-    """Detect document type from filename."""
-    lower = filename.lower()
-    if "annex" in lower or "zalacznik" in lower:
-        return "annex"
-    return "agreement"
+    return {
+        "contract_id": "UNKNOWN",
+        "source_type": "base",
+        "language": "pl" if "_pl" in lower else "en",
+        "version": "1",
+        "effective_date": "",
+    }
 
 
 def build_embedding_model(settings: Settings) -> AzureOpenAIEmbedding:
@@ -70,11 +91,11 @@ def run_ingestion(
     reader = SimpleDirectoryReader(input_dir=str(data_path), recursive=False)
     documents = reader.load_data()
 
-    # Enrich metadata
+    # Enrich metadata from filename convention
     for doc in documents:
         filename = doc.metadata.get("file_name", "")
-        doc.metadata["language"] = _detect_language(filename)
-        doc.metadata["document_type"] = _detect_document_type(filename)
+        meta = parse_filename_metadata(filename)
+        doc.metadata.update(meta)
 
     # Chunk with settings tuned for contracts (larger chunks preserve clause context)
     splitter = SentenceSplitter(chunk_size=1024, chunk_overlap=128)
