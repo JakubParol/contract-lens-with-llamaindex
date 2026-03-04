@@ -37,6 +37,7 @@ This repo does NOT cover:
 - **LangFuse** for observability — use `LlamaIndexInstrumentor` (not the deprecated callback handler) and `langfuse.langchain.CallbackHandler` for LangGraph
 - No hardcoded API keys — everything via `.env` and `pydantic-settings`
 - Agreements in both English and Polish — metadata must track language
+- **Amendments override base contract terms** — metadata must include `contract_id`, `source_type` (base/amendment), `effective_date`, `version`. Filenames encode this metadata for automatic detection during ingestion.
 
 ## Key Patterns
 

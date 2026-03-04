@@ -69,7 +69,7 @@ Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_obs
 
 ## Synthetic Data Pipeline
 
-Agreements are generated and degraded before ingestion:
+Agreements and their amendments are generated and degraded before ingestion:
 
 ```
 scripts/generate_agreements.py          scripts/simulate_scans.py
@@ -80,12 +80,19 @@ scripts/generate_agreements.py          scripts/simulate_scans.py
         │                                       │
         ▼                                       ▼
   data/agreements/*.pdf  ──────────▶  data/scans/*.pdf
-  (5 clean PDFs)                      (5 scan-simulated PDFs)
+  (9 PDFs: 5 bases +                  (9 scan-simulated PDFs)
+   4 amendments)
 ```
 
-Filename conventions drive metadata detection:
-- `*_pl.pdf` / `*_en.pdf` → `language` metadata
-- `*annex*` / `*zalacznik*` → `document_type: annex` (otherwise `agreement`)
+Filename convention encodes metadata for ingestion:
+```
+{nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
+```
+- `contract_id` → links base contracts with their amendments (e.g., `ITSVC001`)
+- `source_type` → `base` or `amendment`
+- `lang` → `en` or `pl`
+- `version` → sequential version number (`v1` = base, `v2` = first amendment, etc.)
+- `effective_date` → date from which terms apply
 
 ## Data Flow
 

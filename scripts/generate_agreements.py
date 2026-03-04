@@ -1,12 +1,19 @@
-"""Generate synthetic agreement PDFs for testing the RAG pipeline.
+"""Generate synthetic agreement PDFs with amendments for testing the RAG pipeline.
 
-Produces 5 agreements (3 EN, 2 PL) with tables, annexes, and signature blocks.
+Produces base contracts and their amendments (aneksy) that override specific clauses.
+Each document encodes metadata in its filename for ingestion:
+
+    {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
+
+Examples:
+    01_ITSVC001_base_en_v1_2025-01-15.pdf
+    06_ITSVC001_amendment_en_v2_2025-07-01.pdf
+
 Output: data/agreements/*.pdf
 """
 
 from __future__ import annotations
 
-import os
 from datetime import date
 from pathlib import Path
 
@@ -24,10 +31,8 @@ class AgreementPDF(FPDF):
         self.doc_title = title
         self.lang = lang
         self.set_auto_page_break(auto=True, margin=25)
-        # Register DejaVu Sans for Unicode (Polish characters) support
         self.add_font("DejaVu", "", str(FONT_DIR / "DejaVuSans.ttf"))
         self.add_font("DejaVu", "B", str(FONT_DIR / "DejaVuSans-Bold.ttf"))
-        # Map italic to regular (oblique not available on all systems)
         self.add_font("DejaVu", "I", str(FONT_DIR / "DejaVuSans.ttf"))
 
     def header(self):
@@ -66,13 +71,11 @@ class AgreementPDF(FPDF):
     def add_table(self, headers: list[str], rows: list[list[str]], col_widths: list[int] | None = None):
         if col_widths is None:
             col_widths = [190 // len(headers)] * len(headers)
-        # Header row
         self.set_font("DejaVu", "B", 9)
         self.set_fill_color(220, 220, 220)
         for i, h in enumerate(headers):
             self.cell(col_widths[i], 7, h, border=1, fill=True, align="C")
         self.ln()
-        # Data rows
         self.set_font("DejaVu", "", 9)
         for row in rows:
             for i, cell in enumerate(row):
@@ -97,15 +100,24 @@ class AgreementPDF(FPDF):
         self.ln()
 
 
-def gen_it_service_agreement() -> Path:
-    """IT Service Agreement (EN) with pricing table annex."""
+# ---------------------------------------------------------------------------
+# Contract 1: IT Service Agreement (EN) — base + 2 amendments
+# ---------------------------------------------------------------------------
+
+def gen_it_service_base() -> Path:
+    """IT Service Agreement — base contract (v1, 2025-01-15)."""
     pdf = AgreementPDF("IT SERVICE AGREEMENT", lang="en")
     pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.add_heading("IT SERVICE AGREEMENT", 1)
     pdf.add_paragraph(
-        f"This IT Service Agreement (the 'Agreement') is entered into as of {date(2025, 1, 15).isoformat()} "
+        "Contract ID: ITSVC-001\n"
+        f"Effective Date: {date(2025, 1, 15).isoformat()}\n"
+        "Version: 1 (Base Contract)"
+    )
+    pdf.add_paragraph(
+        "This IT Service Agreement (the 'Agreement') is entered into as of 2025-01-15 "
         "between TechFlow Solutions Ltd., a company registered in London, United Kingdom "
         "('Provider'), and GlobalRetail Corp., a company registered in New York, USA ('Client')."
     )
@@ -143,7 +155,7 @@ def gen_it_service_agreement() -> Path:
 
     pdf.add_signature_block()
 
-    # Annex A - Pricing Table
+    # Annex A — Pricing
     pdf.add_page()
     pdf.add_heading("ANNEX A - Pricing Schedule", 1)
     pdf.add_paragraph("The following rates apply to services rendered under this Agreement:")
@@ -159,22 +171,151 @@ def gen_it_service_agreement() -> Path:
         col_widths=[55, 45, 45, 45],
     )
     pdf.add_paragraph("Additional services not listed above shall be quoted separately and require written approval.")
-    pdf.add_paragraph("Travel expenses, if applicable, shall be reimbursed at cost with prior approval.")
 
-    path = OUTPUT_DIR / "01_it_service_agreement_en.pdf"
+    path = OUTPUT_DIR / "01_ITSVC001_base_en_v1_2025-01-15.pdf"
     pdf.output(str(path))
     return path
 
 
+def gen_it_service_amendment1() -> Path:
+    """IT Service Agreement — Amendment 1 (v2, 2025-07-01): rate increase."""
+    pdf = AgreementPDF("AMENDMENT NO. 1 TO IT SERVICE AGREEMENT", lang="en")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+
+    pdf.add_heading("AMENDMENT NO. 1", 1)
+    pdf.add_heading("TO IT SERVICE AGREEMENT (ITSVC-001)", 2)
+    pdf.add_paragraph(
+        "Contract ID: ITSVC-001\n"
+        f"Effective Date: {date(2025, 7, 1).isoformat()}\n"
+        "Version: 2 (Amendment 1)\n"
+        f"Amends: Base Contract dated {date(2025, 1, 15).isoformat()}"
+    )
+    pdf.add_paragraph(
+        "This Amendment No. 1 ('Amendment') is entered into as of 2025-07-01 between "
+        "TechFlow Solutions Ltd. ('Provider') and GlobalRetail Corp. ('Client'), "
+        "amending the IT Service Agreement dated January 15, 2025."
+    )
+
+    pdf.add_heading("1. Revised Pricing (replaces Annex A)", 2)
+    pdf.add_paragraph(
+        "Due to increased market rates and expanded service scope, the parties agree to "
+        "the following revised pricing schedule, effective July 1, 2025. "
+        "This schedule replaces Annex A of the base contract in its entirety."
+    )
+    pdf.add_table(
+        headers=["Service Category", "Rate (USD/hour)", "Min Hours/Month", "Monthly Cap"],
+        rows=[
+            ["Senior Architect", "$285", "40", "$13,500"],
+            ["Cloud Engineer", "$230", "80", "$20,500"],
+            ["DevOps Specialist", "$210", "60", "$14,500"],
+            ["Project Manager", "$175", "20", "$4,500"],
+            ["QA Engineer", "$160", "40", "$8,000"],
+        ],
+        col_widths=[55, 45, 45, 45],
+    )
+
+    pdf.add_heading("2. Extended Team (amends clause 1.3)", 2)
+    pdf.add_paragraph(
+        "Clause 1.3 of the base contract is amended to read: "
+        "'The Provider shall assign a dedicated team of no fewer than 5 senior consultants "
+        "to the engagement, including at least 1 AI/ML specialist.'"
+    )
+
+    pdf.add_heading("3. Unchanged Terms", 2)
+    pdf.add_paragraph(
+        "All other terms and conditions of the base Agreement remain in full force and effect."
+    )
+
+    pdf.add_signature_block()
+
+    path = OUTPUT_DIR / "02_ITSVC001_amendment_en_v2_2025-07-01.pdf"
+    pdf.output(str(path))
+    return path
+
+
+def gen_it_service_amendment2() -> Path:
+    """IT Service Agreement — Amendment 2 (v3, 2026-01-01): rate increase + new tier."""
+    pdf = AgreementPDF("AMENDMENT NO. 2 TO IT SERVICE AGREEMENT", lang="en")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+
+    pdf.add_heading("AMENDMENT NO. 2", 1)
+    pdf.add_heading("TO IT SERVICE AGREEMENT (ITSVC-001)", 2)
+    pdf.add_paragraph(
+        "Contract ID: ITSVC-001\n"
+        f"Effective Date: {date(2026, 1, 1).isoformat()}\n"
+        "Version: 3 (Amendment 2)\n"
+        f"Amends: Amendment No. 1 dated {date(2025, 7, 1).isoformat()}"
+    )
+    pdf.add_paragraph(
+        "This Amendment No. 2 ('Amendment') is entered into as of 2026-01-01 between "
+        "TechFlow Solutions Ltd. ('Provider') and GlobalRetail Corp. ('Client'), "
+        "further amending the IT Service Agreement."
+    )
+
+    pdf.add_heading("1. Revised Pricing (replaces previous Annex A)", 2)
+    pdf.add_paragraph(
+        "The parties agree to the following pricing schedule effective January 1, 2026. "
+        "This replaces all previous pricing schedules."
+    )
+    pdf.add_table(
+        headers=["Service Category", "Rate (USD/hour)", "Min Hours/Month", "Monthly Cap"],
+        rows=[
+            ["Senior Architect", "$310", "40", "$15,000"],
+            ["Cloud Engineer", "$260", "80", "$23,000"],
+            ["DevOps Specialist", "$235", "60", "$16,000"],
+            ["Project Manager", "$195", "20", "$5,000"],
+            ["QA Engineer", "$175", "40", "$8,500"],
+            ["AI/ML Engineer", "$320", "40", "$15,500"],
+        ],
+        col_widths=[55, 45, 45, 45],
+    )
+
+    pdf.add_heading("2. New Service Tier (new clause 1.4)", 2)
+    pdf.add_paragraph(
+        "A new clause 1.4 is added: 'The Provider shall offer a dedicated AI/ML engineering "
+        "service tier covering model development, MLOps pipeline setup, and LLM integration. "
+        "This service is billed at the AI/ML Engineer rate specified above.'"
+    )
+
+    pdf.add_heading("3. Payment Terms (amends clause 3.2)", 2)
+    pdf.add_paragraph(
+        "Clause 3.2 is amended to read: 'Invoices shall be issued bi-weekly and payment "
+        "is due within 14 days of receipt.' (Previously: monthly, 30 days.)"
+    )
+
+    pdf.add_heading("4. Unchanged Terms", 2)
+    pdf.add_paragraph(
+        "All other terms and conditions of the Agreement, as previously amended, "
+        "remain in full force and effect."
+    )
+
+    pdf.add_signature_block()
+
+    path = OUTPUT_DIR / "03_ITSVC001_amendment_en_v3_2026-01-01.pdf"
+    pdf.output(str(path))
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Contract 2: Mutual NDA (EN) — standalone, no amendments
+# ---------------------------------------------------------------------------
+
 def gen_nda() -> Path:
-    """Mutual NDA (EN)."""
+    """Mutual NDA (EN) — standalone contract, no amendments."""
     pdf = AgreementPDF("MUTUAL NON-DISCLOSURE AGREEMENT", lang="en")
     pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.add_heading("MUTUAL NON-DISCLOSURE AGREEMENT", 1)
     pdf.add_paragraph(
-        f"This Mutual Non-Disclosure Agreement ('NDA') is entered into as of {date(2025, 3, 1).isoformat()} "
+        "Contract ID: NDA-001\n"
+        f"Effective Date: {date(2025, 3, 1).isoformat()}\n"
+        "Version: 1 (Base Contract)"
+    )
+    pdf.add_paragraph(
+        "This Mutual Non-Disclosure Agreement ('NDA') is entered into as of 2025-03-01 "
         "between DataVault Analytics Inc., registered in San Francisco, CA ('Party A'), "
         "and Quantum Insights GmbH, registered in Berlin, Germany ('Party B')."
     )
@@ -213,20 +354,29 @@ def gen_nda() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "02_mutual_nda_en.pdf"
+    path = OUTPUT_DIR / "04_NDA001_base_en_v1_2025-03-01.pdf"
     pdf.output(str(path))
     return path
 
 
-def gen_lease_agreement_pl() -> Path:
-    """Office Lease Agreement (PL) with asset inventory annex."""
+# ---------------------------------------------------------------------------
+# Contract 3: Office Lease (PL) — base + 1 amendment
+# ---------------------------------------------------------------------------
+
+def gen_lease_base() -> Path:
+    """Office Lease Agreement (PL) — base contract (v1, 2025-02-10)."""
     pdf = AgreementPDF("UMOWA NAJMU LOKALU BIUROWEGO", lang="pl")
     pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.add_heading("UMOWA NAJMU LOKALU BIUROWEGO", 1)
     pdf.add_paragraph(
-        f"Umowa zawarta w dniu {date(2025, 2, 10).isoformat()} w Warszawie pomiedzy: "
+        "Numer umowy: LEASE-001\n"
+        f"Data wejscia w zycie: {date(2025, 2, 10).isoformat()}\n"
+        "Wersja: 1 (Umowa bazowa)"
+    )
+    pdf.add_paragraph(
+        "Umowa zawarta w dniu 2025-02-10 w Warszawie pomiedzy: "
         "Nieruchomosci Centrum Sp. z o.o. z siedziba w Warszawie, ul. Marszalkowska 100, "
         "NIP: 5271234567 ('Wynajmujacy'), a InnoTech Solutions Sp. z o.o. z siedziba w Warszawie, "
         "ul. Zlota 59, NIP: 5279876543 ('Najemca')."
@@ -242,7 +392,7 @@ def gen_lease_agreement_pl() -> Path:
     pdf.add_clause("2.2", "Po uplywie okresu najmu umowa moze zostac przedluzona na podstawie pisemnego aneksu.")
 
     pdf.add_heading("3. Czynsz i oplaty", 2)
-    pdf.add_clause("3.1", "Miesięczny czynsz najmu wynosi 25 000 PLN netto (plus VAT 23%).")
+    pdf.add_clause("3.1", "Miesieczny czynsz najmu wynosi 25 000 PLN netto (plus VAT 23%).")
     pdf.add_clause("3.2", "Czynsz platny jest z gory do 10. dnia kazdego miesiaca na rachunek bankowy Wynajmujacego.")
     pdf.add_clause("3.3", "Najemca ponosi dodatkowo koszty mediow (energia, woda, ogrzewanie) wedlug zuzycia.")
 
@@ -263,7 +413,7 @@ def gen_lease_agreement_pl() -> Path:
 
     pdf.add_signature_block()
 
-    # Zalacznik 1 - asset inventory
+    # Zalacznik 1 — asset inventory
     pdf.add_page()
     pdf.add_heading("ZALACZNIK NR 1 - Wykaz wyposazenia lokalu", 1)
     pdf.add_paragraph("Ponizszy wykaz stanowi liste wyposazenia przekazanego Najemcy wraz z lokalem:")
@@ -283,22 +433,85 @@ def gen_lease_agreement_pl() -> Path:
         ],
         col_widths=[15, 95, 25, 55],
     )
-    pdf.add_paragraph("Stan wyposazenia potwierdzony przez obie strony w dniu przekazania lokalu.")
 
-    path = OUTPUT_DIR / "03_lease_agreement_pl.pdf"
+    path = OUTPUT_DIR / "05_LEASE001_base_pl_v1_2025-02-10.pdf"
     pdf.output(str(path))
     return path
 
 
-def gen_sla_agreement() -> Path:
-    """Cloud SLA Agreement (EN) with metrics table annex."""
+def gen_lease_amendment1() -> Path:
+    """Office Lease — Amendment 1 (v2, 2025-09-01): rent increase + parking."""
+    pdf = AgreementPDF("ANEKS NR 1 DO UMOWY NAJMU", lang="pl")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+
+    pdf.add_heading("ANEKS NR 1", 1)
+    pdf.add_heading("DO UMOWY NAJMU LOKALU BIUROWEGO (LEASE-001)", 2)
+    pdf.add_paragraph(
+        "Numer umowy: LEASE-001\n"
+        f"Data wejscia w zycie: {date(2025, 9, 1).isoformat()}\n"
+        "Wersja: 2 (Aneks 1)\n"
+        f"Zmienia: Umowe bazowa z dnia {date(2025, 2, 10).isoformat()}"
+    )
+    pdf.add_paragraph(
+        "Aneks zawarty w dniu 2025-09-01 w Warszawie pomiedzy: "
+        "Nieruchomosci Centrum Sp. z o.o. ('Wynajmujacy') a InnoTech Solutions Sp. z o.o. ('Najemca'), "
+        "zmieniajacy Umowe Najmu Lokalu Biurowego z dnia 10 lutego 2025 r."
+    )
+
+    pdf.add_heading("1. Zmiana czynszu (zmienia punkt 3.1)", 2)
+    pdf.add_paragraph(
+        "Punkt 3.1 umowy bazowej otrzymuje nowe brzmienie: "
+        "'Miesieczny czynsz najmu wynosi 28 500 PLN netto (plus VAT 23%).'\n\n"
+        "Uzasadnienie: waloryzacja roczna zgodna z wskaznikiem inflacji GUS (14% r/r) "
+        "oraz rozszerzenie zakresu uslug serwisowych budynku."
+    )
+
+    pdf.add_heading("2. Miejsca parkingowe (nowy punkt 1.3)", 2)
+    pdf.add_paragraph(
+        "Dodaje sie punkt 1.3 w brzmieniu: "
+        "'Wynajmujacy udostepnia Najemcy 5 miejsc parkingowych w garazu podziemnym budynku. "
+        "Oplata za miejsca parkingowe wynosi 500 PLN netto za miejsce miesiecznie "
+        "(lacznie 2 500 PLN netto miesiecznie, plus VAT 23%).'"
+    )
+
+    pdf.add_heading("3. Kaucja (zmienia punkt 4.1)", 2)
+    pdf.add_paragraph(
+        "Punkt 4.1 umowy bazowej otrzymuje nowe brzmienie: "
+        "'Kaucja zostaje podwyzszona do kwoty 85 500 PLN (rownowartość 3 miesiecy nowego czynszu). "
+        "Najemca doplaci roznice w wysokosci 10 500 PLN w terminie 14 dni od podpisania aneksu.'"
+    )
+
+    pdf.add_heading("4. Pozostale postanowienia", 2)
+    pdf.add_paragraph(
+        "Wszystkie pozostale postanowienia umowy bazowej pozostaja bez zmian."
+    )
+
+    pdf.add_signature_block()
+
+    path = OUTPUT_DIR / "06_LEASE001_amendment_pl_v2_2025-09-01.pdf"
+    pdf.output(str(path))
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Contract 4: Cloud SLA (EN) — base + 1 amendment
+# ---------------------------------------------------------------------------
+
+def gen_sla_base() -> Path:
+    """Cloud SLA Agreement (EN) — base contract (v1, 2025-04-01)."""
     pdf = AgreementPDF("SERVICE LEVEL AGREEMENT", lang="en")
     pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.add_heading("SERVICE LEVEL AGREEMENT", 1)
     pdf.add_paragraph(
-        f"This Service Level Agreement ('SLA') is entered into as of {date(2025, 4, 1).isoformat()} "
+        "Contract ID: SLA-001\n"
+        f"Effective Date: {date(2025, 4, 1).isoformat()}\n"
+        "Version: 1 (Base Contract)"
+    )
+    pdf.add_paragraph(
+        "This Service Level Agreement ('SLA') is entered into as of 2025-04-01 "
         "between CloudNine Infrastructure Ltd., registered in Dublin, Ireland ('Provider'), "
         "and MegaBank Financial Services Plc., registered in London, UK ('Client')."
     )
@@ -331,7 +544,7 @@ def gen_sla_agreement() -> Path:
 
     pdf.add_signature_block()
 
-    # Annex A - SLA Metrics
+    # Annex A — SLA Metrics
     pdf.add_page()
     pdf.add_heading("ANNEX A - Service Level Metrics", 1)
 
@@ -369,23 +582,98 @@ def gen_sla_agreement() -> Path:
         col_widths=[60, 130],
     )
 
-    path = OUTPUT_DIR / "04_cloud_sla_en.pdf"
+    path = OUTPUT_DIR / "07_SLA001_base_en_v1_2025-04-01.pdf"
     pdf.output(str(path))
     return path
 
 
-def gen_employment_contract_pl() -> Path:
-    """Employment Contract (PL) with compensation table."""
+def gen_sla_amendment1() -> Path:
+    """Cloud SLA — Amendment 1 (v2, 2025-10-01): upgraded tiers + stricter targets."""
+    pdf = AgreementPDF("AMENDMENT NO. 1 TO SERVICE LEVEL AGREEMENT", lang="en")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+
+    pdf.add_heading("AMENDMENT NO. 1", 1)
+    pdf.add_heading("TO SERVICE LEVEL AGREEMENT (SLA-001)", 2)
+    pdf.add_paragraph(
+        "Contract ID: SLA-001\n"
+        f"Effective Date: {date(2025, 10, 1).isoformat()}\n"
+        "Version: 2 (Amendment 1)\n"
+        f"Amends: Base Contract dated {date(2025, 4, 1).isoformat()}"
+    )
+    pdf.add_paragraph(
+        "This Amendment No. 1 is entered into as of 2025-10-01 between "
+        "CloudNine Infrastructure Ltd. ('Provider') and MegaBank Financial Services Plc. ('Client'), "
+        "amending the Service Level Agreement dated April 1, 2025."
+    )
+
+    pdf.add_heading("1. Upgraded Availability Targets (replaces Annex A availability)", 2)
+    pdf.add_paragraph(
+        "The Client has upgraded to the Platinum tier. The availability targets "
+        "in Annex A are replaced with the following:"
+    )
+    pdf.add_table(
+        headers=["Service Tier", "Monthly Uptime SLA", "Credit (< SLA)", "Credit (< 99.9%)"],
+        rows=[
+            ["Platinum Plus", "99.995%", "15% monthly fee", "30% monthly fee"],
+            ["Platinum", "99.99%", "10% monthly fee", "25% monthly fee"],
+            ["Gold", "99.95%", "10% monthly fee", "20% monthly fee"],
+        ],
+        col_widths=[40, 45, 50, 55],
+    )
+
+    pdf.add_heading("2. Stricter Incident Response (replaces Annex A response targets)", 2)
+    pdf.add_paragraph("Updated incident response and resolution targets:")
+    pdf.add_table(
+        headers=["Priority", "Description", "Response Time", "Resolution Target"],
+        rows=[
+            ["P1 - Critical", "Service down, all users affected", "5 minutes", "2 hours"],
+            ["P2 - High", "Major feature degraded", "15 minutes", "4 hours"],
+            ["P3 - Medium", "Minor feature issue", "1 hour", "12 hours"],
+            ["P4 - Low", "Cosmetic or informational", "4 hours", "3 business days"],
+        ],
+        col_widths=[35, 65, 40, 50],
+    )
+
+    pdf.add_heading("3. Service Credit Cap (amends clause 3.3)", 2)
+    pdf.add_paragraph(
+        "Clause 3.3 is amended to read: 'Total service credits in any calendar month "
+        "shall not exceed 50% of that month's fees.' (Previously: 30%.)"
+    )
+
+    pdf.add_heading("4. Unchanged Terms", 2)
+    pdf.add_paragraph(
+        "All other terms and conditions of the SLA remain in full force and effect."
+    )
+
+    pdf.add_signature_block()
+
+    path = OUTPUT_DIR / "08_SLA001_amendment_en_v2_2025-10-01.pdf"
+    pdf.output(str(path))
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Contract 5: Employment Contract (PL) — standalone, no amendments
+# ---------------------------------------------------------------------------
+
+def gen_employment_contract() -> Path:
+    """Employment Contract (PL) — standalone, no amendments."""
     pdf = AgreementPDF("UMOWA O PRACE", lang="pl")
     pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.add_heading("UMOWA O PRACE", 1)
     pdf.add_paragraph(
-        f"Umowa zawarta w dniu {date(2025, 5, 1).isoformat()} w Krakowie pomiedzy: "
+        "Numer umowy: EMP-001\n"
+        f"Data wejscia w zycie: {date(2025, 5, 1).isoformat()}\n"
+        "Wersja: 1 (Umowa bazowa)"
+    )
+    pdf.add_paragraph(
+        "Umowa zawarta w dniu 2025-05-01 w Krakowie pomiedzy: "
         "AI Systems Poland Sp. z o.o. z siedziba w Krakowie, ul. Mogilska 43, "
         "NIP: 6793456789, reprezentowana przez Jana Kowalskiego - Prezesa Zarzadu ('Pracodawca'), "
-        "a Anną Nowak, zamieszkala w Krakowie, PESEL: 90010112345 ('Pracownik')."
+        "a Anna Nowak, zamieszkala w Krakowie, PESEL: 90010112345 ('Pracownik')."
     )
 
     pdf.add_heading("1. Warunki zatrudnienia", 2)
@@ -417,7 +705,7 @@ def gen_employment_contract_pl() -> Path:
 
     pdf.add_signature_block()
 
-    # Zalacznik - compensation
+    # Zalacznik — compensation
     pdf.add_page()
     pdf.add_heading("ZALACZNIK NR 1 - Wynagrodzenie i swiadczenia", 1)
     pdf.add_table(
@@ -439,27 +727,46 @@ def gen_employment_contract_pl() -> Path:
         "oraz sytuacji finansowej Pracodawcy."
     )
 
-    path = OUTPUT_DIR / "05_employment_contract_pl.pdf"
+    path = OUTPUT_DIR / "09_EMP001_base_pl_v1_2025-05-01.pdf"
     pdf.output(str(path))
     return path
 
 
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Clear old files
+    for old in OUTPUT_DIR.glob("*.pdf"):
+        old.unlink()
+
     generators = [
-        ("IT Service Agreement (EN)", gen_it_service_agreement),
+        # IT Service Agreement — base + 2 amendments
+        ("IT Service Agreement - base (EN)", gen_it_service_base),
+        ("IT Service Agreement - amendment 1 (EN)", gen_it_service_amendment1),
+        ("IT Service Agreement - amendment 2 (EN)", gen_it_service_amendment2),
+        # NDA — standalone
         ("Mutual NDA (EN)", gen_nda),
-        ("Lease Agreement (PL)", gen_lease_agreement_pl),
-        ("Cloud SLA (EN)", gen_sla_agreement),
-        ("Employment Contract (PL)", gen_employment_contract_pl),
+        # Office Lease — base + 1 amendment
+        ("Office Lease - base (PL)", gen_lease_base),
+        ("Office Lease - amendment 1 (PL)", gen_lease_amendment1),
+        # Cloud SLA — base + 1 amendment
+        ("Cloud SLA - base (EN)", gen_sla_base),
+        ("Cloud SLA - amendment 1 (EN)", gen_sla_amendment1),
+        # Employment Contract — standalone
+        ("Employment Contract (PL)", gen_employment_contract),
     ]
 
     for name, gen_fn in generators:
         path = gen_fn()
         print(f"  Generated: {path.name} ({name})")
 
-    print(f"\nAll {len(generators)} agreements generated in {OUTPUT_DIR}")
+    print(f"\nAll {len(generators)} documents generated in {OUTPUT_DIR}")
+    print(f"  Base contracts: 5")
+    print(f"  Amendments:     4")
 
 
 if __name__ == "__main__":
