@@ -11,7 +11,7 @@ Decisions and rationale for each technology choice. Last updated: 2026-03-04.
 | **LlamaIndex** | RAG framework | Best-in-class for document ingestion, chunking, OCR, embeddings, and retrieval. Superior to LangChain for document-heavy RAG. |
 | **LangGraph** | Agent framework | Minimal, graph-based agent orchestration. Used only for the agent layer, not for RAG. |
 | **Pinecone** | Vector database | Managed, serverless, fast. Good for POC — no infra to manage. |
-| **Azure AI Foundry** | LLM + Embeddings provider | Client/company standard. Hosts GPT-4 and embedding models. |
+| **Azure AI Foundry** | LLM + Embeddings provider | Client/company standard. Direct calls via Azure OpenAI SDKs (no proxy layer). |
 | **LangFuse** | Observability | Traces both LlamaIndex and LangChain/LangGraph in one dashboard. Open-source option available. |
 | **pydantic-settings** | Configuration | Type-safe config from `.env` files. |
 
@@ -50,7 +50,8 @@ Pinned in `pyproject.toml`. Key packages:
 - `langchain-openai` — `AzureChatOpenAI` for LangGraph nodes
 - `langfuse` — observability
 - `pinecone` — vector DB client (note: `pinecone-client` is deprecated)
-- `fpdf2` + `Pillow` — dev dependencies for synthetic data generation
+- `pydantic-settings` — type-safe `.env` configuration
+- `fpdf2` + `Pillow` + `pdf2image` — dev dependencies for synthetic data generation and scan simulation
 
 ## Navigation
 

@@ -67,16 +67,37 @@ Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_obs
 - **`tools.py`** — `search_contracts` tool wrapping the LlamaIndex query engine
 - **`graph.py`** — ReAct-style graph: LLM node decides whether to call retrieval tool or respond directly
 
+## Synthetic Data Pipeline
+
+Agreements are generated and degraded before ingestion:
+
+```
+scripts/generate_agreements.py          scripts/simulate_scans.py
+        │                                       │
+        ▼                                       ▼
+  fpdf2 + DejaVu Sans               pdf2image + Pillow
+  (Unicode EN/PL support)            (rotation, noise, blur)
+        │                                       │
+        ▼                                       ▼
+  data/agreements/*.pdf  ──────────▶  data/scans/*.pdf
+  (5 clean PDFs)                      (5 scan-simulated PDFs)
+```
+
+Filename conventions drive metadata detection:
+- `*_pl.pdf` / `*_en.pdf` → `language` metadata
+- `*annex*` / `*zalacznik*` → `document_type: annex` (otherwise `agreement`)
+
 ## Data Flow
 
-1. Scanned PDFs (simulated from generated agreements) sit in `data/scans/`
-2. Ingestion pipeline processes them into Pinecone vectors
-3. User asks a question via CLI (`scripts/chat.py`)
-4. LangGraph agent receives the question
-5. Agent decides to call `search_contracts` tool
-6. Tool queries Pinecone via LlamaIndex, returns synthesized context
-7. Agent formulates final answer using the retrieved context
-8. All steps are traced in LangFuse
+1. Generate synthetic agreements → `data/agreements/`
+2. Simulate scans (rotation, noise, blur) → `data/scans/`
+3. Ingestion pipeline processes scans into Pinecone vectors
+4. User asks a question via CLI (`scripts/chat.py`) or notebook
+5. LangGraph agent receives the question
+6. Agent decides to call `search_contracts` tool
+7. Tool queries Pinecone via LlamaIndex, returns synthesized context
+8. Agent formulates final answer using the retrieved context
+9. All steps are traced in LangFuse
 
 ## Navigation
 
