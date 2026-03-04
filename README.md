@@ -120,17 +120,24 @@ poetry run python scripts/chat.py
 
 ## Synthetic Agreements
 
-The project includes a generator for 5 synthetic contracts used as demo data:
+The project generates 5 base contracts and 4 amendments to test **amendment-aware RAG** — where amendments override specific clauses from the base contract and the system must return the latest effective terms.
 
-| # | Agreement | Language | Key Features |
-|---|-----------|----------|--------------|
-| 1 | IT Service Agreement | EN | Pricing table annex |
-| 2 | Mutual NDA | EN | Confidentiality clauses |
-| 3 | Office Lease Agreement | PL | Asset inventory annex |
-| 4 | Cloud SLA | EN | Metrics + penalty tables |
-| 5 | Employment Contract | PL | Compensation table |
+| Contract ID | Type | Language | Documents |
+|-------------|------|----------|-----------|
+| ITSVC-001 | IT Service Agreement | EN | Base (2025-01-15) + Amendment 1 (2025-07-01) + Amendment 2 (2026-01-01) |
+| NDA-001 | Mutual NDA | EN | Base only (2025-03-01) |
+| LEASE-001 | Office Lease | PL | Base (2025-02-10) + Amendment 1 (2025-09-01) |
+| SLA-001 | Cloud SLA | EN | Base (2025-04-01) + Amendment 1 (2025-10-01) |
+| EMP-001 | Employment Contract | PL | Base only (2025-05-01) |
 
-PDFs are generated with `fpdf2` (DejaVu Sans for Unicode/Polish support), then degraded with Pillow to simulate scanned documents (rotation, noise, reduced contrast).
+**Amendment examples:**
+- ITSVC-001: hourly rate $250 → $285 → $310 (across 3 versions), new AI/ML service tier added in v3
+- LEASE-001: rent 25,000 PLN → 28,500 PLN, parking spaces added
+- SLA-001: P1 response time 15 min → 5 min, credit cap 30% → 50%
+
+Filenames encode metadata: `{nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf`
+
+PDFs are generated with `fpdf2` (DejaVu Sans for Unicode/Polish), then degraded with Pillow to simulate scanned documents.
 
 ## Documentation
 
