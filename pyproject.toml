@@ -1,0 +1,14 @@
+[project]
+name = "contract-lens"
+version = "0.1.0"
+description = "RAG pipeline and conversational agent for analyzing scanned agreements using LlamaIndex, LangGraph, Pinecone, and LangFuse"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+
+[tool.poetry]
+packages = [{include = "contract_lens", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
