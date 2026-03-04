@@ -88,7 +88,7 @@ Filename convention encodes metadata for ingestion:
 ```
 {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
 ```
-- `contract_id` → links base contracts with their amendments (e.g., `ITSVC001`)
+- `contract_id` → links base contracts with their amendments (e.g., `ITSVC-001`)
 - `source_type` → `base` or `amendment`
 - `lang` → `en` or `pl`
 - `version` → sequential version number (`v1` = base, `v2` = first amendment, etc.)

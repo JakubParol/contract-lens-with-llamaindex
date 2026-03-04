@@ -35,13 +35,13 @@ Each filename encodes metadata for automatic detection during ingestion:
 | Field | Values | Example |
 |-------|--------|---------|
 | `nn` | Sequential number (01-09) | `01` |
-| `contract_id` | Unique ID (e.g., ITSVC001) | `ITSVC001` |
+| `contract_id` | Unique ID (e.g., ITSVC-001) | `ITSVC-001` |
 | `source_type` | `base` or `amendment` | `amendment` |
 | `lang` | `en` or `pl` | `en` |
 | `version` | `v1`, `v2`, `v3` | `v2` |
 | `effective_date` | ISO date | `2025-07-01` |
 
-Example: `02_ITSVC001_amendment_en_v2_2025-07-01.pdf`
+Example: `02_ITSVC-001_amendment_en_v2_2025-07-01.pdf`
 
 ## Generation Pipeline
 

@@ -6,8 +6,8 @@ Each document encodes metadata in its filename for ingestion:
     {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
 
 Examples:
-    01_ITSVC001_base_en_v1_2025-01-15.pdf
-    06_ITSVC001_amendment_en_v2_2025-07-01.pdf
+    01_ITSVC-001_base_en_v1_2025-01-15.pdf
+    06_ITSVC-001_amendment_en_v2_2025-07-01.pdf
 
 Output: data/agreements/*.pdf
 """
@@ -172,7 +172,7 @@ def gen_it_service_base() -> Path:
     )
     pdf.add_paragraph("Additional services not listed above shall be quoted separately and require written approval.")
 
-    path = OUTPUT_DIR / "01_ITSVC001_base_en_v1_2025-01-15.pdf"
+    path = OUTPUT_DIR / "01_ITSVC-001_base_en_v1_2025-01-15.pdf"
     pdf.output(str(path))
     return path
 
@@ -229,7 +229,7 @@ def gen_it_service_amendment1() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "02_ITSVC001_amendment_en_v2_2025-07-01.pdf"
+    path = OUTPUT_DIR / "02_ITSVC-001_amendment_en_v2_2025-07-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -293,7 +293,7 @@ def gen_it_service_amendment2() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "03_ITSVC001_amendment_en_v3_2026-01-01.pdf"
+    path = OUTPUT_DIR / "03_ITSVC-001_amendment_en_v3_2026-01-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -354,7 +354,7 @@ def gen_nda() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "04_NDA001_base_en_v1_2025-03-01.pdf"
+    path = OUTPUT_DIR / "04_NDA-001_base_en_v1_2025-03-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -434,7 +434,7 @@ def gen_lease_base() -> Path:
         col_widths=[15, 95, 25, 55],
     )
 
-    path = OUTPUT_DIR / "05_LEASE001_base_pl_v1_2025-02-10.pdf"
+    path = OUTPUT_DIR / "05_LEASE-001_base_pl_v1_2025-02-10.pdf"
     pdf.output(str(path))
     return path
 
@@ -489,7 +489,7 @@ def gen_lease_amendment1() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "06_LEASE001_amendment_pl_v2_2025-09-01.pdf"
+    path = OUTPUT_DIR / "06_LEASE-001_amendment_pl_v2_2025-09-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -582,7 +582,7 @@ def gen_sla_base() -> Path:
         col_widths=[60, 130],
     )
 
-    path = OUTPUT_DIR / "07_SLA001_base_en_v1_2025-04-01.pdf"
+    path = OUTPUT_DIR / "07_SLA-001_base_en_v1_2025-04-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -648,7 +648,7 @@ def gen_sla_amendment1() -> Path:
 
     pdf.add_signature_block()
 
-    path = OUTPUT_DIR / "08_SLA001_amendment_en_v2_2025-10-01.pdf"
+    path = OUTPUT_DIR / "08_SLA-001_amendment_en_v2_2025-10-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -727,7 +727,7 @@ def gen_employment_contract() -> Path:
         "oraz sytuacji finansowej Pracodawcy."
     )
 
-    path = OUTPUT_DIR / "09_EMP001_base_pl_v1_2025-05-01.pdf"
+    path = OUTPUT_DIR / "09_EMP-001_base_pl_v1_2025-05-01.pdf"
     pdf.output(str(path))
     return path
 
@@ -738,10 +738,6 @@ def gen_employment_contract() -> Path:
 
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Clear old files
-    for old in OUTPUT_DIR.glob("*.pdf"):
-        old.unlink()
 
     generators = [
         # IT Service Agreement — base + 2 amendments
@@ -760,13 +756,21 @@ def main():
         ("Employment Contract (PL)", gen_employment_contract),
     ]
 
+    old_files = set(OUTPUT_DIR.glob("*.pdf"))
+    new_files = set()
+
     for name, gen_fn in generators:
         path = gen_fn()
+        new_files.add(path)
         print(f"  Generated: {path.name} ({name})")
 
+    # Remove stale files only after all generators succeed
+    for old in old_files - new_files:
+        old.unlink(missing_ok=True)
+
     print(f"\nAll {len(generators)} documents generated in {OUTPUT_DIR}")
-    print(f"  Base contracts: 5")
-    print(f"  Amendments:     4")
+    print("  Base contracts: 5")
+    print("  Amendments:     4")
 
 
 if __name__ == "__main__":
