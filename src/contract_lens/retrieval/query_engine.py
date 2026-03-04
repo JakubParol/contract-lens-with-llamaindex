@@ -1,4 +1,4 @@
-"""LlamaIndex query engine over Pinecone vector store."""
+"""LlamaIndex query engine over Pinecone vector store with amendment awareness."""
 
 from __future__ import annotations
 
@@ -12,19 +12,33 @@ from contract_lens.ingestion.pipeline import (
     build_pinecone_vector_store,
 )
 
+AMENDMENT_AWARE_PROMPT = (
+    "You are a contract analysis assistant. The knowledge base contains base contracts "
+    "and their amendments (aneksy). Amendments override specific clauses from the base contract.\n\n"
+    "IMPORTANT RULES:\n"
+    "- Each document has metadata: contract_id, source_type (base/amendment), version, effective_date.\n"
+    "- When terms conflict between a base contract and an amendment, ALWAYS use the amendment's terms "
+    "(the one with the higher version number or later effective_date).\n"
+    "- When asked about current terms (rates, prices, SLA targets, etc.), return the LATEST version.\n"
+    "- When asked about history or changes, list all versions chronologically.\n"
+    "- Always mention which version/date your answer comes from.\n"
+)
+
 
 def build_query_engine(
     settings: Settings,
     language: str | None = None,
-    document_type: str | None = None,
-    similarity_top_k: int = 5,
+    contract_id: str | None = None,
+    source_type: str | None = None,
+    similarity_top_k: int = 8,
 ):
     """Build a LlamaIndex query engine over the Pinecone index.
 
     Args:
         settings: Application settings.
         language: Filter by language ("en" or "pl"). None = all.
-        document_type: Filter by type ("agreement" or "annex"). None = all.
+        contract_id: Filter by contract ID (e.g., "ITSVC-001"). None = all.
+        source_type: Filter by source type ("base" or "amendment"). None = all.
         similarity_top_k: Number of similar chunks to retrieve.
     """
     vector_store = build_pinecone_vector_store(settings)
@@ -37,19 +51,21 @@ def build_query_engine(
     )
 
     # Build metadata filters if specified
-    filters = None
     filter_list = []
     if language:
         filter_list.append(MetadataFilter(key="language", value=language, operator=FilterOperator.EQ))
-    if document_type:
-        filter_list.append(MetadataFilter(key="document_type", value=document_type, operator=FilterOperator.EQ))
-    if filter_list:
-        filters = MetadataFilters(filters=filter_list)
+    if contract_id:
+        filter_list.append(MetadataFilter(key="contract_id", value=contract_id.upper(), operator=FilterOperator.EQ))
+    if source_type:
+        filter_list.append(MetadataFilter(key="source_type", value=source_type.lower(), operator=FilterOperator.EQ))
+
+    filters = MetadataFilters(filters=filter_list) if filter_list else None
 
     return index.as_query_engine(
         llm=llm,
         similarity_top_k=similarity_top_k,
         filters=filters,
+        system_prompt=AMENDMENT_AWARE_PROMPT,
     )
 
 
@@ -57,9 +73,19 @@ def query_contracts(
     settings: Settings,
     question: str,
     language: str | None = None,
-    document_type: str | None = None,
+    contract_id: str | None = None,
+    source_type: str | None = None,
 ) -> str:
-    """Query the contract knowledge base and return a synthesized answer."""
-    engine = build_query_engine(settings, language=language, document_type=document_type)
+    """Query the contract knowledge base and return a synthesized answer.
+
+    The query engine is amendment-aware: it prioritizes the latest version
+    of any clause when terms conflict between base contracts and amendments.
+    """
+    engine = build_query_engine(
+        settings,
+        language=language,
+        contract_id=contract_id,
+        source_type=source_type,
+    )
     response = engine.query(question)
     return str(response)
