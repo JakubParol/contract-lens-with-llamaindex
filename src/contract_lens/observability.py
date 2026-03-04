@@ -9,13 +9,16 @@ def init_observability(settings: Settings) -> None:
     if not settings.langfuse_enabled:
         return
 
-    from langfuse.llama_index import LlamaIndexInstrumentor
+    import os
 
-    LlamaIndexInstrumentor(
-        public_key=settings.langfuse_public_key,
-        secret_key=settings.langfuse_secret_key,
-        host=settings.langfuse_host,
-    ).start()
+    # Langfuse v3 uses OTEL-based instrumentation via openinference
+    os.environ.setdefault("LANGFUSE_PUBLIC_KEY", settings.langfuse_public_key)
+    os.environ.setdefault("LANGFUSE_SECRET_KEY", settings.langfuse_secret_key)
+    os.environ.setdefault("LANGFUSE_HOST", settings.langfuse_host)
+
+    from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+
+    LlamaIndexInstrumentor().instrument()
 
 
 def get_langfuse_callback_handler(settings: Settings):
