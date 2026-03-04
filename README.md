@@ -111,6 +111,28 @@ poetry run python scripts/ingest.py
 poetry run python scripts/chat.py
 ```
 
+## Notebooks
+
+| # | Notebook | Description |
+|---|----------|-------------|
+| 1 | [01_generate_data.ipynb](notebooks/01_generate_data.ipynb) | Generate synthetic agreement PDFs and simulate scans |
+| 2 | [02_ingestion.ipynb](notebooks/02_ingestion.ipynb) | Step-by-step LlamaIndex ingestion pipeline to Pinecone |
+| 3 | [03_agent_demo.ipynb](notebooks/03_agent_demo.ipynb) | Interactive LangGraph agent with example contract queries |
+
+## Synthetic Agreements
+
+The project includes a generator for 5 synthetic contracts used as demo data:
+
+| # | Agreement | Language | Key Features |
+|---|-----------|----------|--------------|
+| 1 | IT Service Agreement | EN | Pricing table annex |
+| 2 | Mutual NDA | EN | Confidentiality clauses |
+| 3 | Office Lease Agreement | PL | Asset inventory annex |
+| 4 | Cloud SLA | EN | Metrics + penalty tables |
+| 5 | Employment Contract | PL | Compensation table |
+
+PDFs are generated with `fpdf2` (DejaVu Sans for Unicode/Polish support), then degraded with Pillow to simulate scanned documents (rotation, noise, reduced contrast).
+
 ## Documentation
 
 - [AGENTS.md](AGENTS.md) — AI agent context and project rules
