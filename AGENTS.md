@@ -46,6 +46,7 @@ This repo does NOT cover:
 
 - **Ingestion and retrieval are separate concerns** — ingestion pipeline writes to Pinecone, query engine reads from it. They share config, not state.
 - **The agent uses LlamaIndex as a tool** — LangGraph agent calls a `search_contracts` tool that wraps a LlamaIndex `RetrieverQueryEngine`. The frameworks don't deeply interleave.
+- **Amendment-aware retrieval** — `AmendmentAwareRetriever` in `src/contract_lens/retrieval/amendment_retriever.py` wraps the standard vector retriever with post-retrieval deduplication. Over-fetches 3x, groups by `(contract_id, section_type, clause_number)`, keeps only the latest version, applies a small version boost, and truncates. This ensures the LLM sees current terms, not stale base contract clauses.
 - **Config is centralized** — `src/contract_lens/config.py` using `pydantic-settings`, loaded from `.env`.
 
 ## Navigation

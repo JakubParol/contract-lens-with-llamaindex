@@ -11,6 +11,7 @@ All project documentation for Contract Lens with LlamaIndex.
 | [synthetic-data.md](synthetic-data.md) | Synthetic agreement generation strategy |
 | [azure-vector-options.md](azure-vector-options.md) | Azure-native vector DB alternatives to Pinecone |
 | [smart-chunking.md](smart-chunking.md) | Structure-aware chunking and metadata-first retrieval |
+| [amendment-override.md](amendment-override.md) | Amendment-aware retrieval with post-retrieval deduplication |
 
 ## Notebooks
 
@@ -20,6 +21,7 @@ All project documentation for Contract Lens with LlamaIndex.
 | [02_ingestion.ipynb](../notebooks/02_ingestion.ipynb) | Step-by-step LlamaIndex ingestion to Pinecone |
 | [03_agent_demo.ipynb](../notebooks/03_agent_demo.ipynb) | LangGraph agent with example contract queries |
 | [04_smart_chunking_demo.ipynb](../notebooks/04_smart_chunking_demo.ipynb) | Structure-aware chunking and metadata-first retrieval |
+| [05_amendment_override_demo.ipynb](../notebooks/05_amendment_override_demo.ipynb) | Amendment-aware retrieval before/after comparison |
 
 ## Scripts
 
