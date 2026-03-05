@@ -18,14 +18,21 @@ from llama_index.core.schema import BaseNode, Document, TextNode
 # ---------------------------------------------------------------------------
 
 # Matches numbered headings like "1. Scope of Services" or "3. Czynsz i oplaty"
-_NUMBERED_HEADING_RE = re.compile(r"^(\d+)\.\s+([A-Z\u0100-\u017F].+)$", re.MULTILINE)
+# Also matches markdown headings: "## 1. Scope of Services"
+_NUMBERED_HEADING_RE = re.compile(r"^(?:#{1,3}\s+)?(\d+)\.\s+([A-Z\u0100-\u017F].+)$", re.MULTILINE)
+
+# Matches markdown headings without a number: "# AMENDMENT NO. 2", "## TO IT SERVICE AGREEMENT"
+_MARKDOWN_HEADING_RE = re.compile(r"^(#{1,3})\s+(.+)$", re.MULTILINE)
 
 # Matches special headings: ANNEX, ZALACZNIK, ANEKS, §, Rozdział, Artykuł, AMENDMENT
 _SPECIAL_HEADING_RE = re.compile(
-    r"^(§\s*\d+\.?|Rozdzia[lł]\s+\w+|Artyku[lł]\s+\w+|ANNEX\s+\w+|ZALA[CĆ]ZNIK\s+(?:NR\s+)?\d+|ANEKS\s+(?:NR\s+)?\d+|AMENDMENT\s+NO\.\s*\d+)"
+    r"^(?:#{1,3}\s+)?(§\s*\d+\.?|Rozdzia[lł]\s+\w+|Artyku[lł]\s+\w+|ANNEX\s+\w+|ZALA[CĆ]ZNIK\s+(?:NR\s+)?\d+|ANEKS\s+(?:NR\s+)?\d+|AMENDMENT\s+NO\.\s*\d+)"
     r"[\s.\-—:]*(.*)$",
     re.MULTILINE | re.IGNORECASE,
 )
+
+# Azure DI page header comments: <!-- PageHeader="..." -->
+_PAGE_HEADER_RE = re.compile(r"<!--\s*PageHeader\s*=\s*\"[^\"]*\"\s*-->\s*\n?", re.IGNORECASE)
 
 # Matches clause numbers like "1.1", "3.2", "12.3"
 _CLAUSE_RE = re.compile(r"^(\d+\.\d+)\s", re.MULTILINE)
@@ -70,6 +77,10 @@ _TABLE_HEADER_RE = re.compile(
     re.IGNORECASE,
 )
 
+# HTML table tags (Azure DI markdown output)
+_HTML_TABLE_RE = re.compile(r"<table[\s>]", re.IGNORECASE)
+_HTML_TR_RE = re.compile(r"<tr[\s>]", re.IGNORECASE)
+
 
 def detect_table(text: str) -> bool:
     """Return True if the text likely contains a table."""
@@ -77,6 +88,9 @@ def detect_table(text: str) -> bool:
     if len(table_lines) >= 2:
         return True
     if _TABLE_HEADER_RE.search(text):
+        return True
+    # HTML tables from Azure DI OCR
+    if _HTML_TABLE_RE.search(text) and len(_HTML_TR_RE.findall(text)) >= 2:
         return True
     return False
 
@@ -90,6 +104,9 @@ def _split_into_sections(text: str) -> list[dict[str, str]]:
 
     Returns a list of dicts with keys: heading, body, heading_number.
     """
+    # Strip Azure DI page header comments before splitting
+    text = _PAGE_HEADER_RE.sub("", text)
+
     # Find all heading positions
     headings: list[tuple[int, int, str, str]] = []  # (start, end, number, heading_text)
 
@@ -98,6 +115,10 @@ def _split_into_sections(text: str) -> list[dict[str, str]]:
 
     for m in _SPECIAL_HEADING_RE.finditer(text):
         headings.append((m.start(), m.end(), "", m.group(0).strip()))
+
+    # Markdown headings (# Title, ## Subtitle) — only if not already matched
+    for m in _MARKDOWN_HEADING_RE.finditer(text):
+        headings.append((m.start(), m.end(), "", m.group(2).strip()))
 
     # Sort by position and deduplicate overlapping matches
     headings.sort(key=lambda x: x[0])
