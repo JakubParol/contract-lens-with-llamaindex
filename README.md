@@ -180,7 +180,6 @@ PDFs are generated with `fpdf2` (DejaVu Sans for Unicode/Polish), then degraded 
 
 ## Documentation
 
-- [AGENTS.md](AGENTS.md) — AI agent context and project rules
 - [docs/INDEX.md](docs/INDEX.md) — Full documentation index
 
 ## License

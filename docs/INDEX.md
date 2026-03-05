@@ -38,4 +38,3 @@ All project documentation for Contract Lens with LlamaIndex.
 ## Navigation
 
 - [README.md](../README.md)
-- [AGENTS.md](../AGENTS.md)
