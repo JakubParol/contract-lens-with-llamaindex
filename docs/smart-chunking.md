@@ -15,9 +15,12 @@ The parser recognizes these heading patterns:
 | Pattern | Examples |
 |---------|----------|
 | Numbered sections | `1. Scope of Services`, `3. Czynsz i oplaty` |
+| Markdown headings | `## 1. Scope of Services`, `# AMENDMENT NO. 2` |
 | Annexes | `ANNEX A - Pricing Schedule`, `ZALACZNIK NR 1 - Wykaz` |
 | Amendments | `AMENDMENT NO. 1`, `ANEKS NR 1` |
 | Polish legal | `§ 1.`, `Rozdział I`, `Artykuł 5` |
+
+Markdown headings (`#`, `##`, `###`) are supported because Azure Document Intelligence OCR returns text in markdown format. The parser also strips Azure DI page header comments (`<!-- PageHeader="..." -->`) before splitting.
 
 ## Metadata Fields
 
@@ -27,7 +30,7 @@ Each chunk carries these structural metadata fields (in addition to `contract_id
 |-------|------|-------------|
 | `section_type` | string | Controlled vocabulary — see below |
 | `section_name` | string | Raw heading text (e.g. "3. Payment Terms") |
-| `has_table` | string | `"true"` or `"false"` |
+| `has_table` | string | `"true"` or `"false"` — detects pipe tables, tab-separated columns, OCR'd table headers, and HTML `<table>` from Azure DI |
 | `clause_number` | string | First clause number in chunk (e.g. "3.1") or empty |
 
 ### Section Type Vocabulary
@@ -64,7 +67,7 @@ The agent tool exposes these as optional parameters, so the LLM can decide when 
 ## Architecture
 
 ```
-PDF pages (SimpleDirectoryReader)
+PDF pages (Azure DI OCR / SimpleDirectoryReader fallback)
     │
     ▼
 Filename metadata (parse_filename_metadata)

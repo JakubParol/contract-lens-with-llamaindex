@@ -60,9 +60,10 @@ Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_obs
 
 ### `src/contract_lens/ingestion/pipeline.py`
 - Loads scanned PDFs from `data/scans/` via `reader.load_documents()`
-- Chunks with `ContractNodeParser` (structure-aware — splits at section boundaries, enriches metadata)
+- Extracts amendment-aware metadata from filenames: `contract_id`, `source_type`, `document_type`, `language`, `version`, `effective_date`
+- Chunks with `ContractNodeParser` (structure-aware — splits at section boundaries, enriches with `section_type`, `section_name`, `has_table`, `clause_number`)
 - Embeds via Azure OpenAI embedding model
-- Upserts to Pinecone with metadata: `filename`, `language` (en/pl), `document_type` (agreement/annex), `page_number`
+- Upserts to Pinecone with all metadata
 
 ### `src/contract_lens/retrieval/amendment_retriever.py`
 - `AmendmentAwareRetriever` wraps the standard vector retriever
@@ -76,9 +77,14 @@ Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_obs
 - Supports metadata filtering (by language, document type, section type, etc.)
 - Uses Azure OpenAI LLM for response synthesis
 
+### `src/contract_lens/retrieval/catalog.py`
+- `summarize_document_catalog()` — metadata-aware document counting (not chunk counting)
+- Groups Pinecone vectors by `(contract_id, source_type, version)` to count unique documents
+- Returns breakdown by language, contract vs. amendment counts, unique contract IDs
+
 ### `src/contract_lens/agent/`
 - **`state.py`** — LangGraph state schema (messages, context)
-- **`tools.py`** — `search_contracts` tool wrapping the LlamaIndex query engine
+- **`tools.py`** — `search_contracts` tool wrapping the LlamaIndex query engine; `count_contract_documents` tool for metadata-aware document counting
 - **`graph.py`** — ReAct-style graph: LLM node decides whether to call retrieval tool or respond directly
 
 ## Synthetic Data Pipeline

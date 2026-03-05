@@ -26,6 +26,8 @@ This repo does NOT cover:
 2. [docs/architecture.md](docs/architecture.md) — system design and data flow
 3. [docs/tech-stack.md](docs/tech-stack.md) — technology choices and rationale
 4. [docs/synthetic-data.md](docs/synthetic-data.md) — how test agreements are generated
+5. [docs/smart-chunking.md](docs/smart-chunking.md) — structure-aware chunking and metadata-first retrieval
+6. [docs/amendment-override.md](docs/amendment-override.md) — amendment-aware retrieval algorithm
 
 ## Rules and Constraints
 
