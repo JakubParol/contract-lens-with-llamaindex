@@ -19,6 +19,9 @@ poetry.toml
 # Environment
 .env
 
+# Agent context
+AGENTS.md
+
 # IDE / Tools
 .idea/
 .vscode/
