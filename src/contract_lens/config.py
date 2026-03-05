@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     pinecone_index_name: str = "contract-lens"
     pinecone_environment: str = "us-east-1"
 
+    # Azure Document Intelligence (OCR)
+    azure_doc_intelligence_endpoint: str = ""
+    azure_doc_intelligence_key: str = ""
+
     # LangFuse
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

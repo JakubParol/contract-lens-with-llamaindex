@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from llama_index.core import SimpleDirectoryReader, StorageContext, VectorStoreIndex
+from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.pinecone import PineconeVectorStore
@@ -13,6 +13,7 @@ from pinecone import Pinecone
 
 from contract_lens.config import Settings
 from contract_lens.ingestion.node_parser import ContractNodeParser
+from contract_lens.ingestion.reader import load_documents
 
 # Filename pattern: {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
 _FILENAME_RE = re.compile(
@@ -87,9 +88,8 @@ def run_ingestion(
     if not data_path.exists():
         raise FileNotFoundError(f"Data directory not found: {data_path}")
 
-    # Load documents
-    reader = SimpleDirectoryReader(input_dir=str(data_path), recursive=False)
-    documents = reader.load_data()
+    # Load documents (Azure DI OCR if configured, otherwise SimpleDirectoryReader)
+    documents = load_documents(settings, data_path)
 
     # Enrich metadata from filename convention
     for doc in documents:

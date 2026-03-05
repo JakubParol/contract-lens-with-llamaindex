@@ -193,8 +193,13 @@ class ContractNodeParser:
                     sub_doc = Document(text=body, metadata=section_meta)
                     sub_nodes = self._sentence_splitter.get_nodes_from_documents([sub_doc])
                     # Preserve section metadata on sub-nodes
-                    for node in sub_nodes:
-                        node.metadata.update(section_meta)
-                    all_nodes.append(node) if not sub_nodes else all_nodes.extend(sub_nodes)
+                    for sub_node in sub_nodes:
+                        sub_node.metadata.update(section_meta)
+
+                    if sub_nodes:
+                        all_nodes.extend(sub_nodes)
+                    else:
+                        # Defensive fallback: keep section content even if splitter returns no nodes.
+                        all_nodes.append(TextNode(text=body, metadata=section_meta))
 
         return all_nodes

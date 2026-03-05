@@ -21,6 +21,7 @@ langfuse = "^3.14.5"
 pydantic-settings = "^2.13.1"
 python-dotenv = "^1.2.2"
 openinference-instrumentation-llama-index = "^4.3.9"
+azure-ai-documentintelligence = "^1.0.2"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

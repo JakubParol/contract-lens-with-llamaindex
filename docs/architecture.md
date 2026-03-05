@@ -8,10 +8,10 @@ The system has three main pipelines: **ingestion**, **retrieval**, and **agent**
 ┌─────────────────────────────────────────────────────────┐
 │                    INGESTION PIPELINE                    │
 │                                                         │
-│  Scanned PDFs ──▶ SimpleDirectoryReader ──▶ OCR/Parse   │
-│       │                                                 │
-│       ▼                                                 │
-│  SentenceSplitter (chunking with metadata)              │
+│  Scanned PDFs ──▶ Azure DI OCR* ──▶ Documents           │
+│       │            (* falls back to SimpleDirectoryReader│
+│       ▼              if Azure DI not configured)        │
+│  ContractNodeParser (structure-aware chunking)          │
 │       │                                                 │
 │       ▼                                                 │
 │  AzureOpenAIEmbedding ──▶ PineconeVectorStore (upsert)  │
@@ -50,9 +50,14 @@ Central configuration via `pydantic-settings`. Loads all API keys, endpoints, an
 ### `src/contract_lens/observability.py`
 Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_observability()` entry point.
 
+### `src/contract_lens/ingestion/reader.py`
+- `load_documents()` — loads PDFs with Azure Document Intelligence OCR when configured (endpoint + key in `.env`)
+- Falls back to `SimpleDirectoryReader` when Azure DI is not configured
+- OCR uses `prebuilt-layout` model, returns markdown-formatted text
+
 ### `src/contract_lens/ingestion/pipeline.py`
-- Loads scanned PDFs from `data/scans/`
-- Chunks with `SentenceSplitter` (tuned for contract text — longer chunks to preserve clause context)
+- Loads scanned PDFs from `data/scans/` via `reader.load_documents()`
+- Chunks with `ContractNodeParser` (structure-aware — splits at section boundaries, enriches metadata)
 - Embeds via Azure OpenAI embedding model
 - Upserts to Pinecone with metadata: `filename`, `language` (en/pl), `document_type` (agreement/annex), `page_number`
 

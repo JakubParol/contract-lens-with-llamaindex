@@ -41,6 +41,7 @@ Models: Azure AI Foundry (direct)
 | Agent Framework | LangGraph |
 | Vector Store | Pinecone |
 | LLM / Embeddings | Azure AI Foundry (OpenAI models, direct) |
+| OCR (optional) | Azure Document Intelligence |
 | Observability | LangFuse |
 | Language | Python 3.12, Poetry |
 
@@ -77,6 +78,7 @@ contract-lens-with-llamaindex/
 - [Poetry](https://python-poetry.org/)
 - Pinecone account and API key
 - Azure AI Foundry deployment (GPT-4 + embedding model)
+- Azure Document Intelligence resource (optional, for OCR of scanned PDFs)
 - LangFuse account (optional, for observability)
 
 ### Setup
@@ -92,6 +94,7 @@ poetry install
 # Configure environment
 cp .env.example .env
 # Edit .env with your API keys
+# For OCR of scanned PDFs, add Azure Document Intelligence keys (optional)
 ```
 
 ### Usage

@@ -38,6 +38,7 @@ This repo does NOT cover:
 - No hardcoded API keys — everything via `.env` and `pydantic-settings`
 - Agreements in both English and Polish — metadata must track language
 - **Amendments override base contract terms** — metadata must include `contract_id`, `source_type` (base/amendment), `effective_date`, `version`. Filenames encode this metadata for automatic detection during ingestion.
+- **OCR is optional** — `src/contract_lens/ingestion/reader.py` uses Azure Document Intelligence when `AZURE_DOC_INTELLIGENCE_ENDPOINT` and `AZURE_DOC_INTELLIGENCE_KEY` are set in `.env`. Without them, it falls back to `SimpleDirectoryReader` (works for text-based PDFs but not scans).
 - **Structure-aware chunking** — `ContractNodeParser` in `src/contract_lens/ingestion/node_parser.py` splits at section boundaries and adds `section_type` (controlled vocabulary: scope, payment, termination, confidentiality, liability, sla, penalties, annex, general), `section_name`, `has_table`, `clause_number` metadata.
 - **Metadata-first retrieval** — query engine and agent tool support filtering by `section_type`, `has_table`, `clause_number` in addition to `language`, `contract_id`, `source_type`.
 
