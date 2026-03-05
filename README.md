@@ -60,7 +60,10 @@ contract-lens-with-llamaindex/
 │   ├── generate_agreements.py # Synthetic agreement PDF generator
 │   ├── simulate_scans.py      # Apply scan effects (noise, rotation)
 │   ├── ingest.py              # Run ingestion pipeline
-│   └── chat.py                # Interactive agent CLI
+│   ├── chat.py                # Interactive agent CLI
+│   ├── reset_vector_db.sh     # Clear all vectors from Pinecone index
+│   ├── show_vector_db_stats.sh # Show vector DB stats and metadata breakdown
+│   └── tui.py                 # Interactive workflow/maintenance menu
 │
 ├── data/
 │   ├── agreements/            # Generated clean PDFs
@@ -100,6 +103,9 @@ cp .env.example .env
 ### Usage
 
 ```bash
+# Optional: run interactive menu for workflow + maintenance
+poetry run python scripts/tui.py
+
 # 1. Generate synthetic agreements
 poetry run python scripts/generate_agreements.py
 
