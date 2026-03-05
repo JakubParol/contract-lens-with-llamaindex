@@ -127,6 +127,7 @@ poetry run python scripts/chat.py
 | 2 | [02_ingestion.ipynb](notebooks/02_ingestion.ipynb) | Step-by-step LlamaIndex ingestion pipeline to Pinecone |
 | 3 | [03_agent_demo.ipynb](notebooks/03_agent_demo.ipynb) | Interactive LangGraph agent with example contract queries |
 | 4 | [04_smart_chunking_demo.ipynb](notebooks/04_smart_chunking_demo.ipynb) | Structure-aware chunking and metadata-first retrieval |
+| 5 | [05_amendment_override_demo.ipynb](notebooks/05_amendment_override_demo.ipynb) | Amendment-aware retrieval before/after comparison |
 
 ## Smart Chunking
 
@@ -139,6 +140,22 @@ The ingestion pipeline uses a custom `ContractNodeParser` that detects section b
 These metadata fields enable **metadata-first retrieval** — filtering by section type or table presence before semantic search, improving precision for targeted queries.
 
 See [docs/smart-chunking.md](docs/smart-chunking.md) for details.
+
+## Amendment Override
+
+When a contract has amendments, standard similarity search may return stale base contract terms instead of the latest amendment — because base contracts are more verbose and score higher on cosine similarity.
+
+The `AmendmentAwareRetriever` solves this with a post-retrieval deduplication step:
+
+1. **Over-fetch** 3x more chunks than needed
+2. **Group** by `(contract_id, section_type, clause_number)`
+3. **Deduplicate** — keep only the latest version in each group
+4. **Re-score** with a small version boost
+5. **Truncate** to final top-K
+
+This ensures the LLM always sees the most current terms. For example, querying "What is the hourly rate for ITSVC-001?" returns $310/hr (amendment v3) instead of $250/hr (base contract).
+
+See [docs/amendment-override.md](docs/amendment-override.md) for the full algorithm and configuration.
 
 ## Synthetic Agreements
 

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from llama_index.core import VectorStoreIndex
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.response_synthesizers import get_response_synthesizer
 from llama_index.core.vector_stores import MetadataFilters, MetadataFilter, FilterOperator
 
 from contract_lens.config import Settings
@@ -11,6 +13,7 @@ from contract_lens.ingestion.pipeline import (
     build_llm,
     build_pinecone_vector_store,
 )
+from contract_lens.retrieval.amendment_retriever import AmendmentAwareRetriever
 
 AMENDMENT_AWARE_PROMPT = (
     "You are a contract analysis assistant. The knowledge base contains base contracts "
@@ -83,10 +86,20 @@ def build_query_engine(
 
     filters = MetadataFilters(filters=filter_list) if filter_list else None
 
-    return index.as_query_engine(
-        llm=llm,
-        similarity_top_k=similarity_top_k,
+    retriever = AmendmentAwareRetriever(
+        index=index,
+        top_k=similarity_top_k,
         filters=filters,
+    )
+
+    synthesizer = get_response_synthesizer(
+        llm=llm,
+        response_mode="compact",
+    )
+
+    return RetrieverQueryEngine.from_args(
+        retriever=retriever,
+        response_synthesizer=synthesizer,
         system_prompt=AMENDMENT_AWARE_PROMPT,
     )
 

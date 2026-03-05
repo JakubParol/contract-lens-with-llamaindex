@@ -20,7 +20,10 @@ The system has three main pipelines: **ingestion**, **retrieval**, and **agent**
 ┌─────────────────────────────────────────────────────────┐
 │                   RETRIEVAL PIPELINE                     │
 │                                                         │
-│  Query ──▶ VectorStoreIndex (Pinecone) ──▶ Top-K docs   │
+│  Query ──▶ VectorStoreIndex (Pinecone) ──▶ Over-fetch   │
+│       │                                                 │
+│       ▼                                                 │
+│  AmendmentAwareRetriever (dedup by version) ──▶ Top-K   │
 │       │                                                 │
 │       ▼                                                 │
 │  RetrieverQueryEngine ──▶ LLM synthesis ──▶ Answer      │
@@ -61,10 +64,16 @@ Initializes LangFuse tracing for both LlamaIndex and LangGraph. Single `init_obs
 - Embeds via Azure OpenAI embedding model
 - Upserts to Pinecone with metadata: `filename`, `language` (en/pl), `document_type` (agreement/annex), `page_number`
 
+### `src/contract_lens/retrieval/amendment_retriever.py`
+- `AmendmentAwareRetriever` wraps the standard vector retriever
+- Over-fetches 3x, groups by `(contract_id, section_type, clause_number)`, deduplicates by version
+- Ensures the LLM context contains only the latest version of each clause
+- `deduplicate_by_version()` is also usable standalone for testing and notebooks
+
 ### `src/contract_lens/retrieval/query_engine.py`
 - Connects to existing Pinecone index
-- Builds `VectorStoreIndex` and `RetrieverQueryEngine`
-- Supports metadata filtering (by language, document type)
+- Builds `VectorStoreIndex` with `AmendmentAwareRetriever` and `RetrieverQueryEngine`
+- Supports metadata filtering (by language, document type, section type, etc.)
 - Uses Azure OpenAI LLM for response synthesis
 
 ### `src/contract_lens/agent/`
