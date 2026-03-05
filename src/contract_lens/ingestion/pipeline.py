@@ -28,14 +28,16 @@ def parse_filename_metadata(filename: str) -> dict[str, str]:
     Expected format: {nn}_{contract_id}_{source_type}_{lang}_v{version}_{effective_date}.pdf
     Example: 02_ITSVC-001_amendment_en_v2_2025-07-01.pdf
 
-    Returns dict with: contract_id, source_type, language, version, effective_date.
+    Returns dict with: contract_id, source_type, document_type, language, version, effective_date.
     Falls back to basic detection if filename doesn't match the convention.
     """
     match = _FILENAME_RE.match(filename)
     if match:
+        source_type = match.group("source_type").lower()
         return {
             "contract_id": match.group("contract_id").upper(),
-            "source_type": match.group("source_type").lower(),
+            "source_type": source_type,
+            "document_type": "contract" if source_type == "base" else "amendment",
             "language": match.group("lang").lower(),
             "version": match.group("version"),
             "effective_date": match.group("effective_date"),
@@ -46,6 +48,7 @@ def parse_filename_metadata(filename: str) -> dict[str, str]:
     return {
         "contract_id": "UNKNOWN",
         "source_type": "base",
+        "document_type": "contract",
         "language": "pl" if "_pl" in lower else "en",
         "version": "1",
         "effective_date": "",

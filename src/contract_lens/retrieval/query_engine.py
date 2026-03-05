@@ -16,9 +16,12 @@ AMENDMENT_AWARE_PROMPT = (
     "You are a contract analysis assistant. The knowledge base contains base contracts "
     "and their amendments (aneksy). Amendments override specific clauses from the base contract.\n\n"
     "IMPORTANT RULES:\n"
-    "- Each document has metadata: contract_id, source_type (base/amendment), version, effective_date.\n"
+    "- Each document has metadata: contract_id, source_type (base/amendment), document_type (contract/amendment), "
+    "language (en/pl), version, effective_date.\n"
     "- Chunks also carry structural metadata: section_type (scope, payment, termination, confidentiality, "
     "liability, sla, penalties, annex, general), section_name, has_table, clause_number.\n"
+    "- Questions about counts (e.g., number of contracts/amendments) should distinguish base contracts from amendments.\n"
+    "- For count questions without an explicit language constraint, count across ALL languages.\n"
     "- When terms conflict between a base contract and an amendment, ALWAYS use the amendment's terms "
     "(the one with the higher version number or later effective_date).\n"
     "- When asked about current terms (rates, prices, SLA targets, etc.), return the LATEST version.\n"
@@ -32,6 +35,7 @@ def build_query_engine(
     language: str | None = None,
     contract_id: str | None = None,
     source_type: str | None = None,
+    document_type: str | None = None,
     section_type: str | None = None,
     has_table: bool | None = None,
     clause_number: str | None = None,
@@ -44,6 +48,7 @@ def build_query_engine(
         language: Filter by language ("en" or "pl"). None = all.
         contract_id: Filter by contract ID (e.g., "ITSVC-001"). None = all.
         source_type: Filter by source type ("base" or "amendment"). None = all.
+        document_type: Filter by document type ("contract" or "amendment"). None = all.
         section_type: Filter by section type (scope, payment, termination,
             confidentiality, liability, sla, penalties, annex, general). None = all.
         has_table: Filter for chunks containing tables. None = all.
@@ -67,6 +72,8 @@ def build_query_engine(
         filter_list.append(MetadataFilter(key="contract_id", value=contract_id.upper(), operator=FilterOperator.EQ))
     if source_type:
         filter_list.append(MetadataFilter(key="source_type", value=source_type.lower(), operator=FilterOperator.EQ))
+    if document_type:
+        filter_list.append(MetadataFilter(key="document_type", value=document_type.lower(), operator=FilterOperator.EQ))
     if section_type:
         filter_list.append(MetadataFilter(key="section_type", value=section_type.lower(), operator=FilterOperator.EQ))
     if has_table is not None:
@@ -90,6 +97,7 @@ def query_contracts(
     language: str | None = None,
     contract_id: str | None = None,
     source_type: str | None = None,
+    document_type: str | None = None,
     section_type: str | None = None,
     has_table: bool | None = None,
     clause_number: str | None = None,
@@ -104,6 +112,7 @@ def query_contracts(
         language=language,
         contract_id=contract_id,
         source_type=source_type,
+        document_type=document_type,
         section_type=section_type,
         has_table=has_table,
         clause_number=clause_number,
