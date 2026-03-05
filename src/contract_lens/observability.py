@@ -1,4 +1,8 @@
+import logging
+
 from contract_lens.config import Settings
+
+logger = logging.getLogger(__name__)
 
 
 def init_observability(settings: Settings) -> None:
@@ -29,7 +33,14 @@ def get_langfuse_callback_handler(settings: Settings):
     if not settings.langfuse_enabled:
         return None
 
-    from langfuse.langchain import CallbackHandler
+    try:
+        from langfuse.langchain import CallbackHandler
+    except ModuleNotFoundError as exc:
+        logger.warning(
+            "LangFuse callback handler disabled (%s). Install `langchain` to enable LangFuse LangChain integration.",
+            exc,
+        )
+        return None
 
     return CallbackHandler(
         public_key=settings.langfuse_public_key,
