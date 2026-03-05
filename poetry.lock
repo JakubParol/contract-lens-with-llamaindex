@@ -2171,6 +2171,41 @@ files = [
 ]
 
 [[package]]
+name = "langchain"
+version = "1.2.10"
+description = "Building applications with LLMs through composability"
+optional = false
+python-versions = "<4.0.0,>=3.10.0"
+groups = ["main"]
+files = [
+    {file = "langchain-1.2.10-py3-none-any.whl", hash = "sha256:e07a377204451fffaed88276b8193e894893b1003e25c5bca6539288ccca3698"},
+    {file = "langchain-1.2.10.tar.gz", hash = "sha256:bdcd7218d9c79a413cf15e106e4eb94408ac0963df9333ccd095b9ed43bf3be7"},
+]
+
+[package.dependencies]
+langchain-core = ">=1.2.10,<2.0.0"
+langgraph = ">=1.0.8,<1.1.0"
+pydantic = ">=2.7.4,<3.0.0"
+
+[package.extras]
+anthropic = ["langchain-anthropic"]
+aws = ["langchain-aws"]
+azure-ai = ["langchain-azure-ai"]
+community = ["langchain-community"]
+deepseek = ["langchain-deepseek"]
+fireworks = ["langchain-fireworks"]
+google-genai = ["langchain-google-genai"]
+google-vertexai = ["langchain-google-vertexai"]
+groq = ["langchain-groq"]
+huggingface = ["langchain-huggingface"]
+mistralai = ["langchain-mistralai"]
+ollama = ["langchain-ollama"]
+openai = ["langchain-openai"]
+perplexity = ["langchain-perplexity"]
+together = ["langchain-together"]
+xai = ["langchain-xai"]
+
+[[package]]
 name = "langchain-core"
 version = "1.2.17"
 description = "Building applications with LLMs through composability"
@@ -6206,4 +6241,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "0bb9a95137473491bea2bc8f396753ee83ffb505d5f87906fc032150baa29d7f"
+content-hash = "732ab2593cf8d1b906582e0ca5e158ae22498945c9fa886269057d501b5071f0"
