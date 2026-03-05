@@ -8,7 +8,7 @@ from langgraph.prebuilt import ToolNode
 
 from contract_lens.config import Settings
 from contract_lens.agent.state import AgentState
-from contract_lens.agent.tools import search_contracts, init_tools
+from contract_lens.agent.tools import search_contracts, count_contract_documents, init_tools
 from contract_lens.observability import get_langfuse_callback_handler
 
 
@@ -36,7 +36,7 @@ def build_agent(settings: Settings):
     """
     init_tools(settings)
 
-    tools = [search_contracts]
+    tools = [search_contracts, count_contract_documents]
     llm = _build_llm(settings).bind_tools(tools)
 
     def call_model(state: AgentState) -> dict:
