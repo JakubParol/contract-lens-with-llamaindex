@@ -52,3 +52,29 @@ This repo does NOT cover:
 
 - [README.md](README.md)
 - [docs/INDEX.md](docs/INDEX.md)
+
+## Execution Workflow (mc + gh)
+
+Trigger: apply this flow whenever the user asks to implement/code a `US`, `Task`, or `Bug`.
+
+Tools:
+- Planning/work tracking: `mc` CLI
+- GitHub flow/PR/review: `gh` CLI
+
+Steps:
+1. Checkout `main`.
+2. Pull latest from remote.
+3. Read target `US`/`Task`/`Bug` via `mc`.
+4. Build implementation plan from the `US` and create child tasks in `mc` under that `US`.
+   - `Task` and `Bug` should be implemented without creating child tasks.
+5. Create and checkout branch named: `<work-item-code>-<short-description>`.
+6. Set work item status to `IN_PROGRESS` via `mc`.
+7. Implement.
+   - If child tasks exist: execute task-by-task and move each task `IN_PROGRESS` -> `DONE` in `mc`.
+8. Commit changes and create PR via `gh`.
+9. Move `US`/`Task`/`Bug` status to `CODE_REVIEW` via `mc`.
+10. Perform code review and add PR comments via `gh`.
+11. Resolve all review comments and mark them resolved via `gh`.
+12. Merge PR.
+13. Locally checkout `main` and pull latest.
+14. Move final `US`/`Task`/`Bug` status to `DONE` via `mc`.

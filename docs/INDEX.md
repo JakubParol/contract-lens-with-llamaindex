@@ -29,6 +29,9 @@ All project documentation for Contract Lens with LlamaIndex.
 | `scripts/simulate_scans.py` | Apply scan effects (rotation, noise, blur) to PDFs |
 | `scripts/ingest.py` | Run ingestion pipeline CLI |
 | `scripts/chat.py` | Interactive agent CLI |
+| `scripts/reset_vector_db.sh` | Clear all vectors from Pinecone index |
+| `scripts/show_vector_db_stats.sh` | Show vector DB stats and metadata breakdown |
+| `scripts/tui.py` | Interactive workflow and maintenance menu |
 
 ## Navigation
 
